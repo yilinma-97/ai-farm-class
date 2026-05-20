@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>AI Farm</title>
+</head>
+
+<body style="font-family: Arial; text-align:center; margin-top:50px;">
+
+    <h1>🐮 AI Farm Assistant</h1>
+    <div id="avatar" style="font-size:100px;">🐮</div>
+
+
+    <input id="question"
+           placeholder="Ask something..."
+           style="width:300px;height:40px;font-size:18px;">
+
+    <button onclick="askAI()"
+            style="height:45px;font-size:18px;">
+        Ask
+    </button>
+   
+   
+    <button onclick="startListening()">
+    🎤 Speak
+    </button>
+
+
+    <h2 id="answer"></h2>
+
+    <script>
+        function startListening(){
+
+            const recognition =
+                new(window.SpeechRecognition ||
+                    window.webkitSpeechRecognition)();
+
+            recognition.lang = "en-US";
+
+            recognition.start();
+
+            recognition.onresult = function(event){
+
+                const text =
+                    event.results[0][0].transcript;
+
+                document.getElementById("question").value =
+                    text;
+
+                askAI();
+
+            };
+
+        }
+
+
+
+
+
+
+        async function askAI(){
+
+            const question =
+                document.getElementById("question").value;
+
+            const response =
+                await fetch("http://localhost:3000/chat", {
+
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":"application/json"
+                    },
+
+                    body: JSON.stringify({
+                        message: question
+                    })
+
+                });
+
+            const data = await response.json();
+
+            document.getElementById("answer").innerText =
+                data.reply;
+
+            const speech = new SpeechSynthesisUtterance(data.reply);
+
+            speech.lang = "en-US";
+            speech.rate = 0.9;
+
+            const avatar = document.getElementById("avatar");
+
+            speech.onstart = function(){
+                avatar.innerText = "🐮🗣️";
+            };
+
+            speech.onend = function(){
+                avatar.innerText = "🐮";
+            };
+
+            window.speechSynthesis.speak(speech);
+
+
+
+        }
+
+    </script>
+
+</body>
+
+</html>
